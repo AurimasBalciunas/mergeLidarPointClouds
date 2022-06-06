@@ -58,6 +58,7 @@ def readBlobData(
             done = False
             num_frame = 0
 
+            totalLidar = ""
             while not done:
                 row = cursor.fetchone()
                 if row is None:
@@ -72,14 +73,15 @@ def readBlobData(
                 if topic_id == topicId:
                     timestamp = row[2]
                     photo = row[3]
+                    totalLidar = totalLidar + "\n" + str(photo.decode("utf-8"))
                     #print(row[2])
                     #print(row[3]
                     
                     
-                    final_name = destination + "/" + frame + "/" + frame + "_{}".format(num_frame) + ".bin"
-                    with open(final_name, "w") as f:
-                        f.write(str(photo))
-                    print("one file written")
+            final_name = destination + "/" + frame + "/" + frame + "_{}".format(num_frame) + ".bin"
+            with open(final_name, "w") as f:
+                f.write(str(totalLidar))
+            print("one file written")
                     
 
 
