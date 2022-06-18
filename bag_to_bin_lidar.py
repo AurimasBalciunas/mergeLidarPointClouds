@@ -11,6 +11,9 @@ parser.add_argument("--destination", type=str, help="Destination for bin and txt
 args = parser.parse_args()
 
 class BagFileParser():
+    frontdict = {}
+    leftdict = {}
+    result = []
     def __init__(self, bag_file):
         self.conn = sqlite3.connect(bag_file)
         self.cursor = self.conn.cursor()
@@ -24,7 +27,7 @@ class BagFileParser():
     def __del__(self):
         self.conn.close()
 
-    def process_messages(self, topic_name, skipCount = 0, showCount = 1000000):
+    def process_messages(self, topic_name, skipCount = 0, showCount = 5): # was 1000000
         
         topic_id = self.topic_id[topic_name]
         # Get from the db
@@ -40,6 +43,14 @@ class BagFileParser():
             # Deserialise all and timestamp them
             timestamp = row[0]
             pointCloud = deserialize_message(row[1], self.topic_msg_message[topic_name])
+            if topic=="/luminar_front_points":
+                frontdict[timestamp] = topic_name
+            elif topic=="/luminar_left_points"
+                leftdict[timestamp] = topic_name
+            elif topic=="/luminar_right_point"
+                if frondict.has_key(timestamp) and leftdict.has_key(timestamp):
+                    newLine = timestamp + "***" + leftdict[timestamp] + frontdict[timestamp]
+
 
             print(f"Got {topic_name} for timestep {timestamp}")
         
