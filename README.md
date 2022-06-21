@@ -1,2 +1,2 @@
 # mergeLidarPointClouds
-Script to merge left, right, and center LIDAR point clouds for MIT-PITT AutoIndy
+WIP: Script to merge left, front, and right LIDAR point clouds for MIT-PITT-RW AutoIndy
