@@ -19,19 +19,27 @@ find_package(sensor_msgs REQUIRED)
 find_package(message_filters REQUIRED)
 find_package(eigen3_cmake_module REQUIRED)
 find_package(Eigen3)
+#find_package(pcl_ros)
+find_package(pcl_conversions)
+
 
 #was here
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
-add_executable(pcd_merge pcd_merge.cpp)
-
-
-#new
-#ament_target_dependencies(pcd_merge rclcpp sensor_msgs message_filters Eigen3)
-
-#was here
+add_executable(pcd_merge src/pcd_merge.cpp)
+ament_target_dependencies(pcd_merge rclcpp sensor_msgs message_filters Eigen3)
+#mew
 target_link_libraries(pcd_merge ${PCL_LIBRARIES})
 
+
+install(TARGETS
+  pcd_merge
+  DESTINATION lib/${PROJECT_NAME}
+  )
+
+#was here
+#target_link_libraries(pcd_merge ${PCL_LIBRARIES})
+
 #new
-#ament_package()
+ament_package()
