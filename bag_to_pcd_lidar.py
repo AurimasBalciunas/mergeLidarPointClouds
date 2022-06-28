@@ -13,6 +13,7 @@ import numpy as np
 import os
 from pathlib import Path
 import struct
+import open3d as o3d
 
 
 parser = argparse.ArgumentParser()
@@ -149,10 +150,33 @@ class BagFileParser():
             points[u][2] = (struct.unpack_from(fmt, data, offset=offset+8))[0]
             points[u][3] = (struct.unpack_from(fmt, data, offset=offset+12))[0]
             offset += point_step
-        #with open("testfile.bin") as file:
+
+        '''
+        Super jank - saving as a bin first since I couldn't figure out
+        how to make a .pcd without first saving as a .bin
+        '''
         with open(str(timestamp) + "_" + str(direction) + ".bin", 'w') as file:
             points.astype('float32').tofile(file)
 
+        binName = str(timestamp) + "_" + str(direction) + ".bin"
+        pcdName = str(timestamp) + "_" + str(direction) + ".pcd"
+        self.bin_to_pcd(binName, pcdName)
+
+    def bin_to_pcd(self, binFileName, pcdFileName):
+        size_float = 4
+        list_pcd = []
+        with open(binFileName, "rb") as f:
+            byte = f.read(size_float * 4)
+            while byte:
+                x, y, z, intensity = struct.unpack("ffff", byte)
+                list_pcd.append([x, y, z])
+                byte = f.read(size_float * 4)
+        np_pcd = np.asarray(list_pcd)
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = o3d.utility.Vector3dVector(np_pcd)
+        o3d.io.write_point_cloud(str(pcdFileName), pcd)
+
+       
 
 if __name__ == "__main__":
 
