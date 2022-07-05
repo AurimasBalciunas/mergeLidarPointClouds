@@ -100,14 +100,9 @@ class BagFileParser():
                     print("point_step: " + str(pointCloud.point_step))
                 rounded_timestamp = round(timestamp, rf)
                 if rounded_timestamp in frontdict.keys() and rounded_timestamp in leftdict.keys():
-                    
-                    
                     self.bin_data(timestamp, leftdict[rounded_timestamp], "left")
                     self.bin_data(timestamp, frontdict[rounded_timestamp], "front")
                     self.bin_data(timestamp, pointCloud, "right")
-                    
-
-
                     print("Binned 1 set")
                     exit()
                 '''
