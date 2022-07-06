@@ -1,7 +1,7 @@
 # mergeLidarPointClouds
 WIP: Script to merge left, front, and right LIDAR point clouds for MIT-PITT-RW AutoIndy
 
-Currently only works on one match of 
+Currently only works on one set of point clouds till binning is figured out
 
 source /opt/ros2/galactic/setup.bash
 
