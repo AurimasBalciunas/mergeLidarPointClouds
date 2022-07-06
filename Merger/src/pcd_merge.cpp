@@ -20,7 +20,6 @@ using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
 
-
 float left_shift[3] = {1.549, 0.267, 0.543};
 float right_shift[3] = {1.549, -0.267, 0.543};
 float front_shift[3] = {2.242, 0, 0.448};
@@ -55,7 +54,7 @@ void saveAsBin(sensor_msgs::msg::PointCloud2 msg, std::string timestamp)
 
     int offset = 0;
     
-    return;
+    //no clue now
 }
 
 void saveXYZI(Eigen::MatrixXd& combined,auto stamp)
@@ -91,7 +90,6 @@ void saveXYZI(Eigen::MatrixXd& combined,auto stamp)
     msg.is_bigendian = false;
     msg.is_dense = false;
     uint8_t *ptr = msg.data.data();
-    
     for (size_t i = 0; i < data_size; i++)
     {
         *(reinterpret_cast<float*>(ptr + 0)) = combined(i,0);
@@ -101,16 +99,32 @@ void saveXYZI(Eigen::MatrixXd& combined,auto stamp)
         ptr += point_step;
     }
 
+    //TODO: SAVE msg to a .bin in kitti format
+
+    //THIS IS ALL JUST EXPERIMENTATION CODE
+    std::vector<float, 4> writeArray;
     std::vector<unsigned char> msgdata = msg.data;
-    
-    //saveAsBin(msg, "1632410999719558958");
+    int starter = 0;
+    int step = 16;
 
-    //publisher_->publish(msg);
-    //code to save it as a .bin goes here
+    for(int i = 0; i < msgdata.size(); i=i+point+step)
+    {
+        unsigned char array1[4] = { msgData[starter], msgData[starter+1], msgData[starter+2], msgData[starter+3]};
+        unsigned char array2[4] = { msgData[starter+4], msgData[starter+5], msgData[starter+6], msgData[starter+7]};
+        unsigned char array3[4] = { msgData[starter+8], msgData[starter+9], msgData[starter+10], msgData[starter+11]};
+        unsigned char array4[4] = { msgData[starter+12], msgData[starter+13], msgData[starter+14], msgData[starter+15]};
+        float float1 = (float)array1;
+        writeArray.push_back({float1, float2, float3, float4});
+    }
 
-    std::ofstream outFile("msgdata.bin");
-    // the important part
-    for (const auto &e : msgdata) outFile << e << "\n";
+/*
+    std::array<float, 4> testArray{{20, -3.14/2, 5, -3.14/2}};
+    std::vector<std::array<float, 4>> inputVector;
+    std::vector<std::array<float, 4>>::iterator it = inputVector.begin();
+    inputVector.insert(it, testArray);
+    */
+
+
 
 }
 
@@ -164,7 +178,7 @@ void msg_to_pointcloud(const sensor_msgs::msg::PointCloud2 Msg, Eigen::MatrixXd&
     }
 }
 
-void cloud_callback(sensor_msgs::msg::PointCloud2 leftMsg, sensor_msgs::msg::PointCloud2 frontMsg, sensor_msgs::msg::PointCloud2 rightMsg)
+void mergeClouds(sensor_msgs::msg::PointCloud2 leftMsg, sensor_msgs::msg::PointCloud2 frontMsg, sensor_msgs::msg::PointCloud2 rightMsg)
 {
     //RCLCPP_INFO(this->get_logger(), "I heard: ");
     int left_size = leftMsg.width;
@@ -197,10 +211,7 @@ void cloud_callback(sensor_msgs::msg::PointCloud2 leftMsg, sensor_msgs::msg::Poi
 
     combined << LeftPoint, FrontPoint, RightPoint;
     combined.block(0,3,combined.rows(),1) = Intensity; 
-    saveXYZI(combined,frontMsg.header.stamp);
-
-
-    
+    saveXYZI(combined,frontMsg.header.stamp);    
 }
 
 int main()
@@ -212,12 +223,7 @@ int main()
     pcl::io::loadPCDFile("../split_results/1632410999719558958_front.pcd", frontSensorPC2);
     pcl::io::loadPCDFile("../split_results/1632410999719558958_right.pcd", rightSensorPC2);
 
-    cloud_callback(leftSensorPC2, frontSensorPC2, rightSensorPC2);
+    mergeClouds(leftSensorPC2, frontSensorPC2, rightSensorPC2);
     
-
-    //int leftSize = leftSensorPC2.width;
-    //Eigen::MatrixXd LeftPoint(leftSize,4);
-    //Eigen::VectorXd left = Eigen::VectorXd::Constant(leftSize,1);
-    //msg_to_pointcloud(leftSensorPC2,LeftPoint);
-
+    return 0;
 }
