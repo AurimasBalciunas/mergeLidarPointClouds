@@ -105,7 +105,7 @@ void saveXYZI(Eigen::MatrixXd& combined,auto stamp)
         ptr += point_step;
     }
     
-    pcl::PCLPointCloud2<pcl::PointXYZI> pcler;
+    pcl::PointCloud<pcl::PointXYZI> pcler;
     pcl::moveFromROSMsg (msg, pcler);
     std::string pcdFilePath = "test_pcd.pcd";
     pcl::io::savePCDFileASCII(pcdFilePath, pcler);
