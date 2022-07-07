@@ -15,17 +15,17 @@ from pathlib import Path
 import struct
 import open3d as o3d
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument("--source", type=str, help="Source for rosbag")
 parser.add_argument("--destination", type=str, help="Destination for bin and txt file output")
 args = parser.parse_args()
-frontdict = {};
-leftdict = {};
+frontdict = {}
+leftdict = {}
 
-frontcount = 0;
-leftcount = 0;
-rightcount = 0;
+frontcount = 0
+leftcount = 0
+rightcount = 0
+binCount = 0
 
 class BagFileParser():
 
@@ -48,6 +48,7 @@ class BagFileParser():
         global leftcount
         global frontcount
         global rightcount
+        global binCount
         notprinted = True
         topic_id = self.topic_id[topic_name]
         # Get from the db
@@ -60,7 +61,7 @@ class BagFileParser():
                 done = True
                 break
             
-            # Deserialise all and timestamp them
+            # Deserialize all and timestamp them
             timestamp = row[0]
             
             pointCloud = deserialize_message(row[1], self.topic_msg_message[topic_name])
@@ -68,49 +69,26 @@ class BagFileParser():
             rf = -8 #rounding factor
             pc = 1
             if topic=="/luminar_front_points":
-                if frontcount <= pc:
-                    #print(str(timestamp))
-                    print(str(round(timestamp, rf)))
-                    #print("Initial front timestamp is " + str(timestamp))
-                    frontcount+=1
-                    print("width: " + str(pointCloud.width))
-                    print("height: " + str(pointCloud.height))
-                    print("row_step: " + str(pointCloud.row_step))
-                    print("point_step: " + str(pointCloud.point_step))
                 frontdict[round(timestamp, rf)] = pointCloud
             elif topic=="/luminar_left_points":
-                if leftcount <= pc:
-                    #print(str(timestamp))
-                    print(str(round(timestamp, rf)))
-                    #print("Initial left timestamp is " + str(timestamp))
-                    leftcount+=1
-                    print("width: " + str(pointCloud.width))
-                    print("height: " + str(pointCloud.height))
-                    print("row_step: " + str(pointCloud.row_step))
-                    print("point_step: " + str(pointCloud.point_step))
                 leftdict[round(timestamp, rf)] = pointCloud
             elif topic=="/luminar_right_points":
-                if rightcount <= pc:
-                    #print(str(timestamp))
-                    print(str(round(timestamp, rf)))
-                    #print("Initial right timestamp is "  + str(timestamp))
-                    rightcount+=1
-                    print("width: " + str(pointCloud.width))
-                    print("height: " + str(pointCloud.height))
-                    print("row_step: " + str(pointCloud.row_step))
-                    print("point_step: " + str(pointCloud.point_step))
                 rounded_timestamp = round(timestamp, rf)
                 if rounded_timestamp in frontdict.keys() and rounded_timestamp in leftdict.keys():
-                    
-                    
                     self.bin_data(timestamp, leftdict[rounded_timestamp], "left")
                     self.bin_data(timestamp, frontdict[rounded_timestamp], "front")
                     self.bin_data(timestamp, pointCloud, "right")
                     
+                    leftdict.pop(rounded_timestamp)
+                    frontdict.pop(rounded_timestamp)
 
+                    binCount += 1
+                    if binCount > 50:
+                        print("bin limit hit")
+                        exit()
+                
 
-                    print("Binned 1 set")
-                    exit()
+                    print("Binned one set")
                 '''
                 if round(timestamp, rf) in frontdict.keys():
                     ...#print("hit front at timestamp: " + str(round(timestamp, rf)))
