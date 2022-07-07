@@ -57,14 +57,12 @@ void pcd2bin (std::string &in_file, std::string &out_file)
     bin_file.write((char*)&cloud->points[i].y,1*sizeof(float));
   	bin_file.write((char*)&cloud->points[i].z,1*sizeof(float));
     bin_file.write((char*)&cloud->points[i].intensity,sizeof(float));
-    //cout<< 	cloud->points[i]<<endl;
   }
   	
   bin_file.close();
 }
 
-
-void saveXYZI(Eigen::MatrixXd& combined,auto stamp)
+void saveXYZI(Eigen::MatrixXd& combined,auto stamp, std::string timestamp)
 {
     uint32_t point_step = 16;
     size_t data_size = combined.rows();
@@ -106,45 +104,11 @@ void saveXYZI(Eigen::MatrixXd& combined,auto stamp)
         *(reinterpret_cast<float*>(ptr + 12)) = combined(i,3);
         ptr += point_step;
     }
-    std::string pcdFilePath = "test_pcd_trynew.pcd";
+    std::string pcdFilePath = "./merged_pcds/" + timestamp + "_combined.pcd";
     pcl::io::savePCDFile(pcdFilePath, msg);
-    std::cout << "made the pcd file" << std::endl;
     
-    //pcl::PointCloud<pcl::PointXYZI> pcler;
-    //pcl::moveFromROSMsg (msg, pcler);
-    //std::string pcdFilePath = "test_pcd.pcd";
-    //pcl::io::savePCDFileASCII(pcdFilePath, pcler);
-    
-    
-    std::string binFilePath = "finalfinal.bin";
+    std::string binFilePath = "./merged_bins/" + timestamp + "_combined.bin";
     pcd2bin(pcdFilePath, binFilePath);
-    
-
-}
-
-void readBin(std::string timestamp, std::string direction, pcl::PointCloud<pcl::PointXYZI>::Ptr points)
-{
-    std::string infile = "../split_results/" + timestamp + "_" + direction + ".bin";
-    //load point cloud
-    std::fstream input(infile.c_str(), std::ios::in | std::ios::binary);
-    if(!input.good())
-    {
-        std::cerr << "Could not read file: " << infile << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    input.seekg(0, std::ios::beg);
-
-
-    int i;
-    for (i=0; input.good() && !input.eof(); i++) {
-        pcl::PointXYZI point;
-        input.read((char *) &point.x, 3*sizeof(float));
-        input.read((char *) &point.intensity, sizeof(float));
-        points->push_back(point);
-    }
-    input.close();
-
-    std::cout << "Read KTTI point cloud with " << i << " points" << std::endl;
 }
 
 float unpackFloat(const std::vector<unsigned char>& buf, int i) {
@@ -180,7 +144,7 @@ void generate_transform(Eigen::Matrix4d& tranform, float vector[],float angle){
                 0,0,0,1;    
 }
 
-void cloud_callback(sensor_msgs::msg::PointCloud2 leftMsg, sensor_msgs::msg::PointCloud2 frontMsg, sensor_msgs::msg::PointCloud2 rightMsg)
+void combine_clouds(sensor_msgs::msg::PointCloud2 leftMsg, sensor_msgs::msg::PointCloud2 frontMsg, sensor_msgs::msg::PointCloud2 rightMsg, std::string timeStamp)
 {
 
     generate_transform(left_to_ram,left_shift,2*M_PI/3);
@@ -192,7 +156,6 @@ void cloud_callback(sensor_msgs::msg::PointCloud2 leftMsg, sensor_msgs::msg::Poi
     right_global = ram_to_cog * right_to_ram;
     front_global = ram_to_cog * front_to_ram;
 
-    //RCLCPP_INFO(this->get_logger(), "I heard: ");
     int left_size = leftMsg.width;
     int right_size = rightMsg.width;
     int front_size = frontMsg.width;
@@ -223,10 +186,7 @@ void cloud_callback(sensor_msgs::msg::PointCloud2 leftMsg, sensor_msgs::msg::Poi
 
     combined << LeftPoint, FrontPoint, RightPoint;
     combined.block(0,3,combined.rows(),1) = Intensity; 
-    saveXYZI(combined,frontMsg.header.stamp);
-
-
-    
+    saveXYZI(combined,frontMsg.header.stamp, timeStamp);
 }
 
 int main()
@@ -234,16 +194,10 @@ int main()
     sensor_msgs::msg::PointCloud2 leftSensorPC2;
     sensor_msgs::msg::PointCloud2 frontSensorPC2;
     sensor_msgs::msg::PointCloud2 rightSensorPC2;
-    pcl::io::loadPCDFile("../split_results/1632410999719558958_left.pcd", leftSensorPC2);
-    pcl::io::loadPCDFile("../split_results/1632410999719558958_front.pcd", frontSensorPC2);
-    pcl::io::loadPCDFile("../split_results/1632410999719558958_right.pcd", rightSensorPC2);
+    pcl::io::loadPCDFile("./split_results/1632410999719558958_left.pcd", leftSensorPC2);
+    pcl::io::loadPCDFile("./split_results/1632410999719558958_front.pcd", frontSensorPC2);
+    pcl::io::loadPCDFile("./split_results/1632410999719558958_right.pcd", rightSensorPC2);
 
-    cloud_callback(leftSensorPC2, frontSensorPC2, rightSensorPC2);
-    
-
-    //int leftSize = leftSensorPC2.width;
-    //Eigen::MatrixXd LeftPoint(leftSize,4);
-    //Eigen::VectorXd left = Eigen::VectorXd::Constant(leftSize,1);
-    //msg_to_pointcloud(leftSensorPC2,LeftPoint);
-
+    std::string timeStamp = "1632410999719558958";
+    combine_clouds(leftSensorPC2, frontSensorPC2, rightSensorPC2, timeStamp);
 }
