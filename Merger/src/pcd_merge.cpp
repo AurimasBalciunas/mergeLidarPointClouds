@@ -160,6 +160,14 @@ void combine_clouds(sensor_msgs::msg::PointCloud2 leftMsg, sensor_msgs::msg::Poi
     int right_size = rightMsg.width;
     int front_size = frontMsg.width;
 
+    std::string messageInfo = "Left message width is " + std::to_string(left_size) + ".\n" +  \
+                              "Front message width is " + std::to_string(front_size) +".\n" + \
+                              "Right message width is " + std::to_string(right_size) + ".\n";
+
+    std::ofstream out("./text_files/" + timeStamp + "_combined_info.txt");
+    out << messageInfo;
+    out.close();
+
     Eigen::MatrixXd LeftPoint(left_size,4);
     Eigen::MatrixXd RightPoint(right_size,4);
     Eigen::MatrixXd FrontPoint(front_size,4);
