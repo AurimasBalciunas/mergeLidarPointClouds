@@ -34,32 +34,32 @@ Eigen::Matrix4d right_global;
 Eigen::Matrix4d front_global;
 
 void pcd2bin (std::string &in_file, std::string &out_file)
-{ 
-   //Create a PointCloud value
-  pcl::PointCloud<pcl::PointXYZI>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZI>);
+{
+    //Create a PointCloud value
+    pcl::PointCloud<pcl::PointXYZI>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZI>);
   
-  //Open the PCD file
-  if (pcl::io::loadPCDFile<pcl::PointXYZI> (in_file, *cloud) == -1) 
-  {
-    PCL_ERROR ("Couldn't read in_file\n");
-  }
-  //Create & write .bin file
-  std::ofstream bin_file(out_file.c_str(),std::ios::out|std::ios::binary|std::ios::app);
-  if(!bin_file.good()) std::cout<<"Couldn't open "<<out_file<<std::endl;  
+    //Open the PCD file
+    if (pcl::io::loadPCDFile<pcl::PointXYZI> (in_file, *cloud) == -1) 
+    {
+        PCL_ERROR ("Couldn't read in_file\n");
+    }
+    //Create & write .bin file
+    std::ofstream bin_file(out_file.c_str(),std::ios::out|std::ios::binary|std::ios::app);
+    if(!bin_file.good()) std::cout<<"Couldn't open "<<out_file<<std::endl;  
 
-  //PCD 2 BIN 
-  std::cout << "Converting "
-            << in_file <<"  to  "<< out_file
-            << std::endl;
-  for (size_t i = 0; i < cloud->points.size (); ++i)
-  {
-  	bin_file.write((char*)&cloud->points[i].x,1*sizeof(float));
-    bin_file.write((char*)&cloud->points[i].y,1*sizeof(float));
-  	bin_file.write((char*)&cloud->points[i].z,1*sizeof(float));
-    bin_file.write((char*)&cloud->points[i].intensity,sizeof(float));
-  }
+    //PCD 2 BIN 
+    std::cout << "Converting "
+              << in_file <<"  to  "<< out_file
+              << std::endl;
+    for (size_t i = 0; i < cloud->points.size (); ++i)
+    {
+  	    bin_file.write((char*)&cloud->points[i].x,1*sizeof(float));
+        bin_file.write((char*)&cloud->points[i].y,1*sizeof(float));
+  	    bin_file.write((char*)&cloud->points[i].z,1*sizeof(float));
+        bin_file.write((char*)&cloud->points[i].intensity,sizeof(float));
+    }
   	
-  bin_file.close();
+    bin_file.close();
 }
 
 void saveXYZI(Eigen::MatrixXd& combined,auto stamp, std::string timestamp)
@@ -111,7 +111,8 @@ void saveXYZI(Eigen::MatrixXd& combined,auto stamp, std::string timestamp)
     pcd2bin(pcdFilePath, binFilePath);
 }
 
-float unpackFloat(const std::vector<unsigned char>& buf, int i) {
+float unpackFloat(const std::vector<unsigned char>& buf, int i)
+{
     uint32_t temp = 0;
     temp = ((buf[i+0]) |
             (buf[i+1] << 8) |
@@ -120,7 +121,8 @@ float unpackFloat(const std::vector<unsigned char>& buf, int i) {
     return *((float *) &temp);
 }
 
-void msg_to_pointcloud(const sensor_msgs::msg::PointCloud2 Msg, Eigen::MatrixXd& Point){
+void msg_to_pointcloud(const sensor_msgs::msg::PointCloud2 Msg, Eigen::MatrixXd& Point)
+{
 
     int size = Msg.width;
     int offset = 0;
@@ -136,9 +138,9 @@ void msg_to_pointcloud(const sensor_msgs::msg::PointCloud2 Msg, Eigen::MatrixXd&
     }
 }
 
-void generate_transform(Eigen::Matrix4d& tranform, float vector[],float angle){
-
-    tranform << cos(angle),-sin(angle),0,vector[0],
+void generate_transform(Eigen::Matrix4d& transform, float vector[],float angle)
+{
+    transform << cos(angle),-sin(angle),0,vector[0],
                 sin(angle),cos(angle), 0,vector[1],
                 0,0,1,vector[2],
                 0,0,0,1;    
@@ -146,6 +148,7 @@ void generate_transform(Eigen::Matrix4d& tranform, float vector[],float angle){
 
 void combine_clouds(sensor_msgs::msg::PointCloud2 leftMsg, sensor_msgs::msg::PointCloud2 frontMsg, sensor_msgs::msg::PointCloud2 rightMsg, std::string timeStamp)
 {
+    
     int left_size = leftMsg.width;
     int right_size = rightMsg.width;
     int front_size = frontMsg.width;
