@@ -1,7 +1,7 @@
 #include <iostream>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
-#include <iostream>
+#include <filesystem>
 #include <fstream>
 #include <cmath>
 #include <memory>
@@ -189,15 +189,39 @@ void combine_clouds(sensor_msgs::msg::PointCloud2 leftMsg, sensor_msgs::msg::Poi
     saveXYZI(combined,frontMsg.header.stamp, timeStamp);
 }
 
+inline bool ends_with(std::string const & value, std::string const & ending)
+{
+    if (ending.size() > value.size()) return false;
+    return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
+
 int main()
 {    
     sensor_msgs::msg::PointCloud2 leftSensorPC2;
     sensor_msgs::msg::PointCloud2 frontSensorPC2;
     sensor_msgs::msg::PointCloud2 rightSensorPC2;
-    pcl::io::loadPCDFile("./split_results/1632410999719558958_left.pcd", leftSensorPC2);
-    pcl::io::loadPCDFile("./split_results/1632410999719558958_front.pcd", frontSensorPC2);
-    pcl::io::loadPCDFile("./split_results/1632410999719558958_right.pcd", rightSensorPC2);
 
-    std::string timeStamp = "1632410999719558958";
-    combine_clouds(leftSensorPC2, frontSensorPC2, rightSensorPC2, timeStamp);
+    //Looping through all files in the directory and merging them
+    for (const auto & file : std::filesystem::directory_iterator("./split_pcds"))
+    {
+        std::string filePath = file.path();
+        if(ends_with(filePath,"_front.pcd"))
+        {
+            std::string timeStamp= filePath.substr(13,19);
+
+            std::string frontFilePath = "./split_pcds/" + timeStamp + "_front.pcd";
+            std::string leftFilePath = "./split_pcds/" + timeStamp + "_left.pcd";
+            std::string rightFilePath = "./split_pcds/" + timeStamp + "_right.pcd";
+
+            if(!std::filesystem::exists(leftFilePath) || !std::filesystem::exists(rightFilePath))
+                throw std::runtime_error(".pcd incorrectly matched up for timestamp " + timeStamp + ". Check to make sure python script ran correctly.");
+            pcl::io::loadPCDFile(leftFilePath, leftSensorPC2);
+            pcl::io::loadPCDFile(frontFilePath, frontSensorPC2);
+            pcl::io::loadPCDFile(rightFilePath, rightSensorPC2);
+            combine_clouds(leftSensorPC2, frontSensorPC2, rightSensorPC2, timeStamp);
+        }
+    }
+
+    return 0;
+
 }
