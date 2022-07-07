@@ -146,16 +146,6 @@ void generate_transform(Eigen::Matrix4d& tranform, float vector[],float angle){
 
 void combine_clouds(sensor_msgs::msg::PointCloud2 leftMsg, sensor_msgs::msg::PointCloud2 frontMsg, sensor_msgs::msg::PointCloud2 rightMsg, std::string timeStamp)
 {
-
-    generate_transform(left_to_ram,left_shift,2*M_PI/3);
-    generate_transform(right_to_ram,right_shift,-2*M_PI/3);
-    generate_transform(front_to_ram,front_shift,0);
-    generate_transform(ram_to_cog,cog_shift,0);
-
-    left_global = ram_to_cog * left_to_ram;
-    right_global = ram_to_cog * right_to_ram;
-    front_global = ram_to_cog * front_to_ram;
-
     int left_size = leftMsg.width;
     int right_size = rightMsg.width;
     int front_size = frontMsg.width;
@@ -205,6 +195,16 @@ inline bool ends_with(std::string const & value, std::string const & ending)
 
 int main()
 {    
+
+    //Generating and calculating the necessary transforms
+    generate_transform(left_to_ram,left_shift,2*M_PI/3);
+    generate_transform(right_to_ram,right_shift,-2*M_PI/3);
+    generate_transform(front_to_ram,front_shift,0);
+    generate_transform(ram_to_cog,cog_shift,0);
+    left_global = ram_to_cog * left_to_ram;
+    right_global = ram_to_cog * right_to_ram;
+    front_global = ram_to_cog * front_to_ram;
+
     sensor_msgs::msg::PointCloud2 leftSensorPC2;
     sensor_msgs::msg::PointCloud2 frontSensorPC2;
     sensor_msgs::msg::PointCloud2 rightSensorPC2;
