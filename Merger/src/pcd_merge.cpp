@@ -53,7 +53,9 @@ void pcd2bin (std::string &in_file, std::string &out_file)
             << std::endl;
   for (size_t i = 0; i < cloud->points.size (); ++i)
   {
-  	bin_file.write((char*)&cloud->points[i].x,3*sizeof(float)); 
+  	bin_file.write((char*)&cloud->points[i].x,1*sizeof(float));
+    bin_file.write((char*)&cloud->points[i].y,1*sizeof(float));
+  	bin_file.write((char*)&cloud->points[i].z,1*sizeof(float));
     bin_file.write((char*)&cloud->points[i].intensity,sizeof(float));
     //cout<< 	cloud->points[i]<<endl;
   }
@@ -104,13 +106,19 @@ void saveXYZI(Eigen::MatrixXd& combined,auto stamp)
         *(reinterpret_cast<float*>(ptr + 12)) = combined(i,3);
         ptr += point_step;
     }
+    std::string pcdFilePath = "test_pcd_trynew.pcd";
+    pcl::io::savePCDFile(pcdFilePath, msg);
+    std::cout << "made the pcd file" << std::endl;
     
-    pcl::PointCloud<pcl::PointXYZI> pcler;
-    pcl::moveFromROSMsg (msg, pcler);
-    std::string pcdFilePath = "test_pcd.pcd";
-    pcl::io::savePCDFileASCII(pcdFilePath, pcler);
-    std::string binFilePath = "testFinal.bin";
+    //pcl::PointCloud<pcl::PointXYZI> pcler;
+    //pcl::moveFromROSMsg (msg, pcler);
+    //std::string pcdFilePath = "test_pcd.pcd";
+    //pcl::io::savePCDFileASCII(pcdFilePath, pcler);
+    
+    
+    std::string binFilePath = "finalfinal.bin";
     pcd2bin(pcdFilePath, binFilePath);
+    
 
 }
 
@@ -164,8 +172,26 @@ void msg_to_pointcloud(const sensor_msgs::msg::PointCloud2 Msg, Eigen::MatrixXd&
     }
 }
 
+void generate_transform(Eigen::Matrix4d& tranform, float vector[],float angle){
+
+    tranform << cos(angle),-sin(angle),0,vector[0],
+                sin(angle),cos(angle), 0,vector[1],
+                0,0,1,vector[2],
+                0,0,0,1;    
+}
+
 void cloud_callback(sensor_msgs::msg::PointCloud2 leftMsg, sensor_msgs::msg::PointCloud2 frontMsg, sensor_msgs::msg::PointCloud2 rightMsg)
 {
+
+    generate_transform(left_to_ram,left_shift,2*M_PI/3);
+    generate_transform(right_to_ram,right_shift,-2*M_PI/3);
+    generate_transform(front_to_ram,front_shift,0);
+    generate_transform(ram_to_cog,cog_shift,0);
+
+    left_global = ram_to_cog * left_to_ram;
+    right_global = ram_to_cog * right_to_ram;
+    front_global = ram_to_cog * front_to_ram;
+
     //RCLCPP_INFO(this->get_logger(), "I heard: ");
     int left_size = leftMsg.width;
     int right_size = rightMsg.width;
