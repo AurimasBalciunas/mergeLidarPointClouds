@@ -86,18 +86,7 @@ class BagFileParser():
                     if binCount > 50:
                         print("bin limit hit")
                         exit()
-                
-
                     print("Binned one set")
-                '''
-                if round(timestamp, rf) in frontdict.keys():
-                    ...#print("hit front at timestamp: " + str(round(timestamp, rf)))
-                if round(timestamp, rf) in leftdict.keys():
-                    ...#print("hit left at timestamp: " + str(round(timestamp, rf)))
-                    #newLine = timestamp + "***" + leftdict[timestamp] + frontdict[timestamp] + pointcloud
-                    #result = result + "\n"  +newLine
-                '''
-            #print(f"Got {topic_name} for timestep {timestamp}")        
         return True
 
     def bin_data(self, timestamp, msg, direction):
@@ -133,11 +122,12 @@ class BagFileParser():
         Super jank - saving as a bin first since I couldn't figure out
         how to make a .pcd without first saving as a .bin
         '''
-        with open(str(timestamp) + "_" + str(direction) + ".bin", 'w') as file:
+        binName = "./split_bins/" + str(timestamp) + "_" + str(direction) + ".bin"
+
+        with open(binName, 'w') as file:
             points.astype('float32').tofile(file)
 
-        binName = str(timestamp) + "_" + str(direction) + ".bin"
-        pcdName = str(timestamp) + "_" + str(direction) + ".pcd"
+        pcdName = "./split_pcds/" + str(timestamp) + "_" + str(direction) + ".pcd"
         self.bin_to_pcd(binName, pcdName)
 
     def bin_to_pcd(self, binFileName, pcdFileName):
