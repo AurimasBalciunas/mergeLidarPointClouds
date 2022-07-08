@@ -30,5 +30,5 @@ move the pcd_merge executable to the main repo folder
 
     ./pcd_merge
 
-Your merged pcd files will be in merged_pcds, and your merged bin representations will be in merged_bins
+Your merged pcd files will be in merged_pcds, and the corresponding merged bin representations will be in merged_bins
 
