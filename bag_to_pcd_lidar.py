@@ -26,6 +26,7 @@ frontcount = 0
 leftcount = 0
 rightcount = 0
 binCount = 0
+binLimit = 1000
 
 class BagFileParser():
 
@@ -49,6 +50,8 @@ class BagFileParser():
         global frontcount
         global rightcount
         global binCount
+        global binLimit
+        
         notprinted = True
         topic_id = self.topic_id[topic_name]
         # Get from the db
@@ -83,7 +86,7 @@ class BagFileParser():
                     frontdict.pop(rounded_timestamp)
 
                     binCount += 1
-                    if binCount > 50:
+                    if binCount > binLimit:
                         print("bin limit hit")
                         exit()
                     print("Binned one set")
